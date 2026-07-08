@@ -5,11 +5,11 @@ elif [ -d "/usr/local/bin" ]; then
   export PATH="/usr/local/bin:$PATH"
 fi
 
+typeset -U path PATH
+
 # --- Main Shell Configuration ---
 
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
 
 # Aliases
 alias gs="git status"
@@ -19,45 +19,56 @@ alias n="npm"
 alias nr="npm run"
 alias g="git"
 
-# NVM Function Replacement
-nvm() {
-  source $(brew --prefix nvm)/nvm.sh --no-use
-  nvm "$@"
+# Lazy-load NVM on first Node-related command instead of during shell startup.
+load-nvm() {
+  local nvm_prefix nvm_sh
+  nvm_prefix="$(brew --prefix nvm 2>/dev/null)" || return 1
+  nvm_sh="$nvm_prefix/nvm.sh"
+  [ -s "$nvm_sh" ] || return 1
+
+  unset -f nvm node npm npx pnpm corepack 2>/dev/null
+  source "$nvm_sh" --no-use
+  nvm use default --silent >/dev/null 2>&1 || true
 }
 
-# NVM Initialization
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"  # Loads nvm
-nvm use default --silent
+nvm() { load-nvm && nvm "$@"; }
+node() { load-nvm && command node "$@"; }
+npm() { load-nvm && command npm "$@"; }
+npx() { load-nvm && command npx "$@"; }
+pnpm() { load-nvm && command pnpm "$@"; }
+corepack() { load-nvm && command corepack "$@"; }
 
 # Brew path set up early in the file
 
-# Windsurf 
-export PATH="/Applications/Windsurf.app/Contents/Resources/app/bin:$PATH"
+# Windsurf
+[ -d "/Applications/Windsurf.app/Contents/Resources/app/bin" ] && export PATH="/Applications/Windsurf.app/Contents/Resources/app/bin:$PATH"
 
 # For fetch mcp (bun)
-export PATH="$HOME/.bun/bin:$PATH"
-export PATH="$HOME/.cargo/bin:$PATH"
+[ -d "$HOME/.bun/bin" ] && export PATH="$HOME/.bun/bin:$PATH"
+[ -d "$HOME/.cargo/bin" ] && export PATH="$HOME/.cargo/bin:$PATH"
 
-# Auto-activate/deactivate python virtual env 
-eval "$(direnv hook zsh)"
-export PATH="/opt/homebrew/opt/python@3.12/libexec/bin:$PATH"
+# Auto-activate/deactivate project environments.
+command -v direnv >/dev/null 2>&1 && eval "$(direnv hook zsh)"
 
-alias python="/opt/homebrew/opt/python@3.12/bin/python3.12"
+# Homebrew's unversioned python/pip shims. Virtualenv paths still win when active.
+[ -d "/opt/homebrew/opt/python@3.12/libexec/bin" ] && export PATH="/opt/homebrew/opt/python@3.12/libexec/bin:$PATH"
 
 # bun completions
 [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
 # Added by Windsurf - Next
-export PATH="$HOME/.codeium/windsurf/bin:$PATH"
-eval "$(direnv hook zsh)"
-export JAVA_HOME=$(/usr/libexec/java_home -v 21)
-export PATH="$JAVA_HOME/bin:$PATH"
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-23.jdk/Contents/Home
-export PATH=$JAVA_HOME/bin:$PATH
+[ -d "$HOME/.codeium/windsurf/bin" ] && export PATH="$HOME/.codeium/windsurf/bin:$PATH"
+
+if [ -d "/Library/Java/JavaVirtualMachines/jdk-23.jdk/Contents/Home" ]; then
+  export JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk-23.jdk/Contents/Home"
+  export PATH="$JAVA_HOME/bin:$PATH"
+elif /usr/libexec/java_home -v 21 >/dev/null 2>&1; then
+  export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+  export PATH="$JAVA_HOME/bin:$PATH"
+fi
 
 # Added by Antigravity CLI installer
-export PATH="$HOME/.local/bin:$PATH"
+[ -d "$HOME/.local/bin" ] && export PATH="$HOME/.local/bin:$PATH"
 
 # Initialize Starship Prompt
 eval "$(starship init zsh)"
@@ -120,4 +131,3 @@ insert-newline() {
 }
 zle -N insert-newline
 bindkey "\e[13;2u" insert-newline
-
