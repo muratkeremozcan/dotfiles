@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
 set -euo pipefail
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
-ln -sfn "$DIR" ~/.dotfiles
-exec sudo env "PATH=$PATH" darwin-rebuild switch --flake ~/.dotfiles#mac
+exec "$DIR/bootstrap.sh"

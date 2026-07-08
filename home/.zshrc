@@ -1,44 +1,8 @@
-# --- Auto-bootstrap Dotfiles & Symlinks ---
-if [ -d "$HOME/dotfiles" ]; then
-  # Ensure ~/.zshrc is symlinked to this file
-  if [ ! -L "$HOME/.zshrc" ] || [ "$(readlink "$HOME/.zshrc")" != "$HOME/dotfiles/home/.zshrc" ]; then
-    rm -f "$HOME/.zshrc"
-    ln -sfn "$HOME/dotfiles/home/.zshrc" "$HOME/.zshrc"
-  fi
-
-  mkdir -p "$HOME/.config"
-
-  # Symlink config directories/files if they aren't already correct
-  # wezterm config
-  if [ ! -L "$HOME/.config/wezterm" ] || [ "$(readlink "$HOME/.config/wezterm")" != "$HOME/dotfiles/home/.config/wezterm" ]; then
-    rm -rf "$HOME/.config/wezterm"
-    ln -sfn "$HOME/dotfiles/home/.config/wezterm" "$HOME/.config/wezterm"
-  fi
-
-  # tmux config
-  if [ ! -L "$HOME/.config/tmux" ] || [ "$(readlink "$HOME/.config/tmux")" != "$HOME/dotfiles/home/.config/tmux" ]; then
-    rm -rf "$HOME/.config/tmux"
-    ln -sfn "$HOME/dotfiles/home/.config/tmux" "$HOME/.config/tmux"
-  fi
-
-  # herdr config (handle files/directories carefully since herdr writes logs here)
-  if [ ! -L "$HOME/.config/herdr/config.toml" ] || [ "$(readlink "$HOME/.config/herdr/config.toml")" != "$HOME/dotfiles/home/.config/herdr/config.toml" ]; then
-    mkdir -p "$HOME/.config/herdr"
-    rm -f "$HOME/.config/herdr/config.toml"
-    ln -sfn "$HOME/dotfiles/home/.config/herdr/config.toml" "$HOME/.config/herdr/config.toml"
-  fi
-
-  # starship config
-  if [ ! -L "$HOME/.config/starship.toml" ] || [ "$(readlink "$HOME/.config/starship.toml")" != "$HOME/dotfiles/home/.config/starship.toml" ]; then
-    rm -f "$HOME/.config/starship.toml"
-    ln -sfn "$HOME/dotfiles/home/.config/starship.toml" "$HOME/.config/starship.toml"
-  fi
-
-  # Install Starship if it's missing
-  if ! command -v starship &>/dev/null; then
-    echo "Starship prompt not found, installing via Homebrew..."
-    brew install starship
-  fi
+# --- Homebrew Path Setup ---
+if [ -d "/opt/homebrew/bin" ]; then
+  export PATH="/opt/homebrew/bin:$PATH"
+elif [ -d "/usr/local/bin" ]; then
+  export PATH="/usr/local/bin:$PATH"
 fi
 
 # --- Main Shell Configuration ---
@@ -66,8 +30,7 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"  # Loads nvm
 nvm use default --silent
 
-# Brew
-export PATH="/opt/homebrew/bin:$PATH"
+# Brew path set up early in the file
 
 # Windsurf 
 export PATH="/Applications/Windsurf.app/Contents/Resources/app/bin:$PATH"
@@ -98,3 +61,15 @@ export PATH="$HOME/.local/bin:$PATH"
 
 # Initialize Starship Prompt
 eval "$(starship init zsh)"
+
+# --- Autocomplete Configuration ---
+
+# Source zsh-autocomplete for real-time type-ahead completion
+if [ -f "/opt/homebrew/share/zsh-autocomplete/zsh-autocomplete.plugin.zsh" ]; then
+  source /opt/homebrew/share/zsh-autocomplete/zsh-autocomplete.plugin.zsh
+elif [ -f "/usr/local/share/zsh-autocomplete/zsh-autocomplete.plugin.zsh" ]; then
+  source /usr/local/share/zsh-autocomplete/zsh-autocomplete.plugin.zsh
+fi
+
+# Select suggestions using Enter
+bindkey -M menuselect '^M' .accept-line
