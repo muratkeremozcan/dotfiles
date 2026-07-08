@@ -2,8 +2,17 @@
   "theme": "dark-ansi",
   "permissions": {
     "allow": [
-      "Edit(~/dotfiles/home/.claude/*)",
-      "Edit(//Users/murat*/dotfiles/home/.claude/*)"
+      "Bash(*)",
+      "Edit(*)",
+      "Read(*)",
+      "Write(*)",
+      "mcp__claude_ai_Slack__*",
+      "mcp__claude_ai_Atlassian__*",
+      "mcp__claude_ai_Atlassian_2__*",
+      "mcp__claude_ai_Granola__*",
+      "mcp__claude_ai_Gmail__*",
+      "mcp__claude_ai_Google_Calendar__*",
+      "mcp__claude_ai_Google_Drive__*"
     ]
   },
   "statusLine": {
