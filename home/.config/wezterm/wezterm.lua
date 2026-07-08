@@ -10,9 +10,16 @@ config.macos_window_background_blur = 50
 config.hide_tab_bar_if_only_one_tab = false -- Keep tab bar visible to display status info
 config.window_decorations = "RESIZE"
 
+-- Dim and desaturate inactive panes to make the active pane pop
+config.inactive_pane_hsb = {
+  saturation = 0.6,
+  brightness = 0.6,
+}
+
 config.colors = {
   selection_bg = "#56526e",
   selection_fg = "#e0def4",
+  split = "#44415a", -- clean divider line color between panes
 }
 
 -- Keep track of closed tabs and panes to allow reopening them
@@ -117,6 +124,11 @@ config.keys = {
     action = wezterm.action.SplitHorizontal { domain = 'CurrentPaneDomain' },
   },
   {
+    key = 'd',
+    mods = 'CMD|SHIFT',
+    action = wezterm.action.SplitVertical { domain = 'CurrentPaneDomain' },
+  },
+  {
     key = 'k',
     mods = 'CMD',
     action = wezterm.action.Multiple {
@@ -192,6 +204,46 @@ config.keys = {
     key = 'RightArrow',
     mods = 'CMD|SHIFT',
     action = wezterm.action.MoveTabRelative(1),
+  },
+  {
+    key = 'LeftArrow',
+    mods = 'CMD',
+    action = wezterm.action_callback(function(window, pane)
+      local tab = window:active_tab()
+      if tab then
+        local target_pane = tab:get_pane_direction("Left")
+        if target_pane then
+          target_pane:activate()
+        else
+          window:perform_action(wezterm.action.ActivateTabRelative(-1), pane)
+        end
+      end
+    end),
+  },
+  {
+    key = 'RightArrow',
+    mods = 'CMD',
+    action = wezterm.action_callback(function(window, pane)
+      local tab = window:active_tab()
+      if tab then
+        local target_pane = tab:get_pane_direction("Right")
+        if target_pane then
+          target_pane:activate()
+        else
+          window:perform_action(wezterm.action.ActivateTabRelative(1), pane)
+        end
+      end
+    end),
+  },
+  {
+    key = 'UpArrow',
+    mods = 'CMD',
+    action = wezterm.action.ActivatePaneDirection('Up'),
+  },
+  {
+    key = 'DownArrow',
+    mods = 'CMD',
+    action = wezterm.action.ActivatePaneDirection('Down'),
   },
 }
 
