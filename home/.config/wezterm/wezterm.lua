@@ -245,6 +245,11 @@ config.keys = {
     mods = 'CMD',
     action = wezterm.action.ActivatePaneDirection('Down'),
   },
+  {
+    key = 'Enter',
+    mods = 'SHIFT',
+    action = wezterm.action.SendString("\x1b[13;2u"),
+  },
 }
 
 return config

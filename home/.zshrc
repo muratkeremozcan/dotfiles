@@ -113,3 +113,11 @@ smart-tab() {
 }
 zle -N smart-tab
 bindkey '^I' smart-tab
+
+# Map Shift+Enter (sent by WezTerm as \x1b[13;2u) to insert a newline
+insert-newline() {
+  LBUFFER+=$'\n'
+}
+zle -N insert-newline
+bindkey "\e[13;2u" insert-newline
+
