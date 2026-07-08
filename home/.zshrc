@@ -62,14 +62,54 @@ export PATH="$HOME/.local/bin:$PATH"
 # Initialize Starship Prompt
 eval "$(starship init zsh)"
 
-# --- Autocomplete Configuration ---
+# --- Autocomplete & Shell Refinements (Warp-like) ---
 
-# Source zsh-autocomplete for real-time type-ahead completion
-if [ -f "/opt/homebrew/share/zsh-autocomplete/zsh-autocomplete.plugin.zsh" ]; then
-  source /opt/homebrew/share/zsh-autocomplete/zsh-autocomplete.plugin.zsh
-elif [ -f "/usr/local/share/zsh-autocomplete/zsh-autocomplete.plugin.zsh" ]; then
-  source /usr/local/share/zsh-autocomplete/zsh-autocomplete.plugin.zsh
+# Enable Zsh completion system
+autoload -Uz compinit
+compinit -u
+
+# Source fzf-tab (replaces standard completion menu with fuzzy-find fzf selection)
+if [ -f "/opt/homebrew/opt/fzf-tab/share/fzf-tab/fzf-tab.zsh" ]; then
+  source "/opt/homebrew/opt/fzf-tab/share/fzf-tab/fzf-tab.zsh"
+elif [ -f "/usr/local/opt/fzf-tab/share/fzf-tab/fzf-tab.zsh" ]; then
+  source "/usr/local/opt/fzf-tab/share/fzf-tab/fzf-tab.zsh"
 fi
 
-# Select suggestions using Enter
-bindkey -M menuselect '^M' .accept-line
+# Case-insensitive tab completion, partial-word completion, and substring completion
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+
+# Colorize completion lists matching 'ls'
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+
+# Source syntax highlighting and autosuggestions
+if [ -f "/opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
+  source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+elif [ -f "/usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
+  source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+fi
+
+if [ -f "/opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
+  source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+elif [ -f "/usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
+  source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+fi
+
+# Configure zsh-autosuggestions style (muted/greyish text)
+export ZSH_AUTO_SUGGEST_HIGHLIGHT_STYLE="fg=8"
+
+# Bindings for zsh-autosuggestions
+bindkey '^f' forward-word          # Ctrl+F to accept one word of suggestion
+bindkey '^e' end-of-line           # Ctrl+E to accept full suggestion
+
+# --- Smart Tab Behavior ---
+# If a shaded history suggestion is visible, Tab accepts it.
+# Otherwise, Tab opens the interactive fuzzy-completion menu.
+smart-tab() {
+  if [[ -n "$POSTDISPLAY" ]]; then
+    zle autosuggest-accept
+  else
+    zle expand-or-complete
+  fi
+}
+zle -N smart-tab
+bindkey '^I' smart-tab

@@ -1,7 +1,11 @@
 # dotfiles
 
-My personal Mac setup, managed with Homebrew Bundle and native shell scripting.
-One repo, one command, and a fresh Mac ends up configured the same way every time.
+My personal macOS setup, managed with Homebrew Bundle and native shell scripting.
+
+> [!NOTE]
+> This repository was originally created by [Kun Chen](https://github.com/kunchenguid) using Nix (`nix-darwin` and `home-manager`). However, because Nix became a pain to maintain and work with, we ripped it out entirely and transitioned to a cleaner, faster, and simpler setup using macOS native defaults, Zsh shell scripting, and declarative package management via **Homebrew Bundle** (`Brewfile`).
+
+One repository, one command, and a fresh Mac ends up configured the same way every time.
 
 ## What you get
 
@@ -9,7 +13,7 @@ Running the switch builds:
 
 - System settings (dark mode, key repeat, dock, Finder, trackpad)
 - Homebrew apps (casks and CLI tools declared in `Brewfile`)
-- Shell (zsh, aliases, starship prompt)
+- Shell (zsh, aliases, starship prompt, and Warp-like autosuggestions/completions)
 - Editor (Neovim config)
 - Terminal (WezTerm config)
 - Agent configs (Claude, Codex, opencode all share one AGENTS.md)
@@ -19,7 +23,7 @@ Running the switch builds:
 On a brand new Mac, from a bare clone of this repo:
 
 ```sh
-git clone https://github.com/kunchenguid/dotfiles.git
+git clone https://github.com/muratkeremozcan/dotfiles.git
 cd dotfiles
 ```
 
