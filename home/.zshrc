@@ -21,9 +21,7 @@ alias g="git"
 
 # Lazy-load NVM on first Node-related command instead of during shell startup.
 load-nvm() {
-  local nvm_prefix nvm_sh
-  nvm_prefix="$(brew --prefix nvm 2>/dev/null)" || return 1
-  nvm_sh="$nvm_prefix/nvm.sh"
+  local nvm_sh="$NVM_DIR/nvm.sh"
   [ -s "$nvm_sh" ] || return 1
 
   unset -f nvm node npm npx pnpm corepack 2>/dev/null
