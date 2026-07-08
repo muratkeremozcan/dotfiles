@@ -250,6 +250,11 @@ config.keys = {
     mods = 'SHIFT',
     action = wezterm.action.SendString("\x1b[13;2u"),
   },
+  {
+    key = 'Enter',
+    mods = 'CMD',
+    action = wezterm.action.ToggleFullScreen,
+  },
 }
 
 return config
