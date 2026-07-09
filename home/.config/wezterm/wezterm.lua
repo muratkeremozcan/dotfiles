@@ -22,8 +22,12 @@ config.colors = {
   split = "#44415a", -- clean divider line color between panes
 }
 
+config.status_update_interval = 1000
+
 -- Keep track of closed tabs and panes to allow reopening them
 local closed_entities = {}
+
+
 
 -- Helper to safely execute a git command in the pane's working directory
 local function run_git_cmd(cwd, cmd)
@@ -36,6 +40,9 @@ end
 
 -- Retrieve git stats (files changed, additions, removals)
 local function get_git_stats(cwd)
+  -- Refresh the git index to make sure files are scanned and stats are dynamic
+  run_git_cmd(cwd, "update-index --refresh")
+
   local status_out = run_git_cmd(cwd, "status --porcelain")
   if not status_out or status_out == "" then
     return nil
@@ -70,6 +77,8 @@ local function get_git_stats(cwd)
 end
 
 -- Show git status, branch, additions/removals in the top-right status bar
+local git_cache = {}
+
 wezterm.on("update-right-status", function(window, pane)
   local cwd_uri = pane:get_current_working_dir()
   if not cwd_uri then
@@ -78,21 +87,37 @@ wezterm.on("update-right-status", function(window, pane)
   end
 
   local cwd = cwd_uri.file_path
+  local now = os.time()
 
-  -- Get git branch
-  local branch = run_git_cmd(cwd, "branch --show-current")
-  if not branch then
-    window:set_right_status("")
-    return
+  if not git_cache[cwd] then
+    git_cache[cwd] = {
+      last_check = 0,
+      branch = "",
+      stats = nil
+    }
   end
-  branch = branch:gsub("%s+", "")
 
-  if branch ~= "" then
+  local cache = git_cache[cwd]
+
+  -- Only query git once every 5 seconds to prevent performance degradation
+  if now - cache.last_check >= 5 then
+    local branch = run_git_cmd(cwd, "branch --show-current")
+    cache.branch = branch and branch:gsub("%s+", "") or ""
+    
+    if cache.branch ~= "" then
+      cache.stats = get_git_stats(cwd)
+    else
+      cache.stats = nil
+    end
+    cache.last_check = now
+  end
+
+  if cache.branch ~= "" then
     local format = {}
     table.insert(format, { Foreground = { Color = "#ea9a97" } }) -- Rose (Branch name)
-    table.insert(format, { Text = "   " .. branch })
+    table.insert(format, { Text = "   " .. cache.branch })
 
-    local stats = get_git_stats(cwd)
+    local stats = cache.stats
     if stats then
       table.insert(format, { Foreground = { Color = "#6e6a86" } }) -- Muted separator
       table.insert(format, { Text = "  │  " })
