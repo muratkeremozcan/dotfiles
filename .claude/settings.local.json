@@ -5,7 +5,10 @@
       "Bash(echo \"syntax: $?\")",
       "Bash(zsh -i -c 'node --version; npm --version; cursor --version' 2>&1)",
       "Bash(git -C /Users/murat.ozcan/dotfiles status --short)",
-      "Bash(git -C /Users/murat.ozcan/dotfiles log --oneline -5)"
+      "Bash(git -C /Users/murat.ozcan/dotfiles log --oneline -5)",
+      "WebSearch",
+      "WebFetch(domain:wezterm.org)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

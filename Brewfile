@@ -5,6 +5,7 @@ tap "clojure/tools"
 tap "facebook/fb"
 tap "mobile-dev-inc/tap"
 tap "my-monkeys/tap"
+tap "wezterm/wezterm"
 
 # Formulas (CLI Tools)
 brew "git"
@@ -38,7 +39,10 @@ brew "tree"
 brew "uv"
 
 # Casks (GUI Applications & Fonts)
-cask "wezterm"
+# WezTerm's "stable" cask hasn't been recut since Feb 2024; nightly is the
+# actively maintained channel and fixes a status-bar repaint bug the stable
+# build has.
+cask "wezterm/wezterm/wezterm-nightly"
 cask "claude-code"
 cask "codex"
 cask "cursor"

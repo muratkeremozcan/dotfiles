@@ -74,6 +74,11 @@ fi
 # Initialize Starship Prompt
 eval "$(starship init zsh)"
 
+# WezTerm shell integration: reports cwd/prompt state to WezTerm on every
+# prompt, so the right-status bar (git branch/stats) refreshes immediately
+# after a command finishes instead of waiting on a fixed timer.
+[ -n "$WEZTERM_PANE" ] && source "$HOME/.config/wezterm/shell-integration.sh"
+
 # --- Autocomplete & Shell Refinements (Warp-like) ---
 
 # Enable Zsh completion system

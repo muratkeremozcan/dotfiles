@@ -79,7 +79,7 @@ end
 -- Show git status, branch, additions/removals in the top-right status bar
 local git_cache = {}
 
-wezterm.on("update-right-status", function(window, pane)
+local function refresh_git_status(window, pane)
   local cwd_uri = pane:get_current_working_dir()
   if not cwd_uri then
     window:set_right_status("")
@@ -99,7 +99,8 @@ wezterm.on("update-right-status", function(window, pane)
 
   local cache = git_cache[cwd]
 
-  -- Only query git once every 5 seconds to prevent performance degradation
+  -- Only query git once every 5 seconds to prevent performance degradation.
+  -- (user-var-changed resets last_check to 0 to force an immediate refresh.)
   if now - cache.last_check >= 5 then
     local branch = run_git_cmd(cwd, "branch --show-current")
     cache.branch = branch and branch:gsub("%s+", "") or ""
@@ -140,6 +141,19 @@ wezterm.on("update-right-status", function(window, pane)
   else
     window:set_right_status("")
   end
+end
+
+wezterm.on("update-status", refresh_git_status)
+
+-- WezTerm's shell integration sets a user var on every new prompt, which
+-- fires this event right after a command finishes. Force the cache to
+-- recompute here so the stats feel instant instead of waiting on the timer.
+wezterm.on("user-var-changed", function(window, pane)
+  local cwd_uri = pane:get_current_working_dir()
+  if cwd_uri and git_cache[cwd_uri.file_path] then
+    git_cache[cwd_uri.file_path].last_check = 0
+  end
+  refresh_git_status(window, pane)
 end)
 
 config.keys = {
