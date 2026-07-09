@@ -68,6 +68,9 @@ fi
 # Added by Antigravity CLI installer
 [ -d "$HOME/.local/bin" ] && export PATH="$HOME/.local/bin:$PATH"
 
+# Cursor app CLI. Keep this after ~/.local/bin so it wins over agent shims named cursor.
+[ -d "/Applications/Cursor.app/Contents/Resources/app/bin" ] && export PATH="/Applications/Cursor.app/Contents/Resources/app/bin:$PATH"
+
 # Initialize Starship Prompt
 eval "$(starship init zsh)"
 
