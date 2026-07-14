@@ -71,13 +71,20 @@ fi
 # Cursor app CLI. Keep this after ~/.local/bin so it wins over agent shims named cursor.
 [ -d "/Applications/Cursor.app/Contents/Resources/app/bin" ] && export PATH="/Applications/Cursor.app/Contents/Resources/app/bin:$PATH"
 
-# Initialize Starship Prompt
-eval "$(starship init zsh)"
+# Initialize Starship Prompt once. Re-sourcing this file must not duplicate its
+# precmd and preexec hooks.
+if [[ -z "${__DOTFILES_STARSHIP_INITIALIZED:-}" ]]; then
+  eval "$(starship init zsh)"
+  typeset -g __DOTFILES_STARSHIP_INITIALIZED=1
+fi
 
-# WezTerm shell integration: reports cwd/prompt state to WezTerm on every
-# prompt, so the right-status bar (git branch/stats) refreshes immediately
-# after a command finishes instead of waiting on a fixed timer.
-[ -n "$WEZTERM_PANE" ] && source "$HOME/.config/wezterm/shell-integration.sh"
+# Keep WezTerm's cwd and semantic prompt zones, but skip unused user vars and
+# never register the hooks twice when this file is re-sourced.
+if [[ -n "$WEZTERM_PANE" && -z "${__DOTFILES_WEZTERM_INTEGRATION_LOADED:-}" ]]; then
+  export WEZTERM_SHELL_SKIP_USER_VARS=1
+  source "$HOME/.config/wezterm/shell-integration.sh"
+  typeset -g __DOTFILES_WEZTERM_INTEGRATION_LOADED=1
+fi
 
 # --- Autocomplete & Shell Refinements (Warp-like) ---
 
@@ -137,3 +144,12 @@ insert-newline() {
 }
 zle -N insert-newline
 bindkey "\e[13;2u" insert-newline
+
+# Refresh Git metrics asynchronously while ZLE is waiting for input. This is
+# sourced after other ZLE plugins so its redraw hook composes with them.
+[ -r "$HOME/.config/zsh/async-git-prompt.zsh" ] && source "$HOME/.config/zsh/async-git-prompt.zsh"
+
+# GitHub Packages auth for @seontechnologies private npm registry (npm.pkg.github.com)
+# Sources the gh CLI token so repo .npmrc files reading ${GITHUB_TOKEN} authenticate.
+# Requires: gh auth refresh -h github.com -s read:packages
+export GITHUB_TOKEN=$(gh auth token 2>/dev/null)

@@ -29,6 +29,7 @@ mkdir -p ~/.config
 
 # Link configuration directories/files
 ln -sfn "$DIR/home/.config/wezterm" ~/.config/wezterm
+ln -sfn "$DIR/home/.config/zsh" ~/.config/zsh
 ln -sfn "$DIR/home/.config/herdr" ~/.config/herdr
 ln -sfn "$DIR/home/.config/nvim" ~/.config/nvim
 ln -sfn "$DIR/home/.config/starship.toml" ~/.config/starship.toml
