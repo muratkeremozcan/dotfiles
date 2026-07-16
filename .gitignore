@@ -1,6 +1,7 @@
 # herdr runtime artifacts (regenerated at runtime; never commit)
 home/.config/herdr/*.log
 home/.config/herdr/session.json
+home/.config/herdr/release-notes.json
 home/.config/herdr/*.sock
 
 # macOS + nix build noise
@@ -10,3 +11,9 @@ result-*
 
 # no-mistakes local validation state - never commit in this public repo
 .no-mistakes/
+
+# Claude Code project-level local settings (machine-specific paths; never commit)
+.claude/settings.local.json
+
+# Safety net: local shell overrides with tokens must never land in the repo
+home/.zshrc.local
