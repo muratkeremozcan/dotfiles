@@ -43,7 +43,14 @@ __dotfiles_git_prompt_collect() {
   done
 
   if (( files > 0 )); then
-    numstat_output=$(LC_ALL=C GIT_OPTIONAL_LOCKS=0 command git -C "$cwd" diff --no-ext-diff HEAD --numstat 2>/dev/null)
+    # In a repo with no commits yet, HEAD doesn't resolve and `git diff HEAD`
+    # fails (staged lines would show as +0). Diff against the empty tree so a
+    # fresh repo still reports real additions. hash-object honors the repo's
+    # object format (sha1 vs sha256).
+    local base=HEAD
+    command git -C "$cwd" rev-parse --verify -q HEAD >/dev/null 2>&1 || \
+      base=$(command git -C "$cwd" hash-object -t tree /dev/null 2>/dev/null)
+    numstat_output=$(LC_ALL=C GIT_OPTIONAL_LOCKS=0 command git -C "$cwd" diff --no-ext-diff "$base" --numstat 2>/dev/null)
     for line in "${(@f)numstat_output}"; do
       added="${line%%[[:space:]]*}"
       line="${line#*[[:space:]]}"
@@ -99,14 +106,30 @@ __dotfiles_git_prompt_ready() {
 
   if [[ "$state" == "repo" && "$files" == <-> && "$files" -gt 0 ]]; then
     export STARSHIP_ASYNC_GIT_FILES="$files"
-    export STARSHIP_ASYNC_GIT_ADDITIONS="$additions"
-    export STARSHIP_ASYNC_GIT_DELETIONS="$deletions"
+    # Only surface +/- when non-zero. Untracked files count toward $files but
+    # never appear in `git diff`, so without this an untracked-only tree shows
+    # a misleading "+0 -0".
+    if [[ "$additions" == <-> && "$additions" -gt 0 ]]; then
+      export STARSHIP_ASYNC_GIT_ADDITIONS="$additions"
+    else
+      unset STARSHIP_ASYNC_GIT_ADDITIONS
+    fi
+    if [[ "$deletions" == <-> && "$deletions" -gt 0 ]]; then
+      export STARSHIP_ASYNC_GIT_DELETIONS="$deletions"
+    else
+      unset STARSHIP_ASYNC_GIT_DELETIONS
+    fi
   else
     unset STARSHIP_ASYNC_GIT_FILES
     unset STARSHIP_ASYNC_GIT_ADDITIONS
     unset STARSHIP_ASYNC_GIT_DELETIONS
   fi
 
+  # NB: $CONTEXT/$KEYMAP are empty inside a zle -F handler, so they can't gate
+  # this against menuselect. We rely instead on the signature check above (only
+  # redraw when metrics actually changed) to keep spurious redraws near zero;
+  # combined with fzf-tab's completion being synchronous, the menu-corruption
+  # window is negligible. This mirrors powerlevel10k's unguarded reset-prompt.
   zle reset-prompt
 }
 

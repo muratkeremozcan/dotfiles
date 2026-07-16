@@ -26,24 +26,34 @@ login() {
   aws sso login --profile "$profile"
 }
 
+# Note: intentionally shadows the `logout` builtin on these machines.
 logout() {
   aws sso logout
-  rm -rf ~/.aws/sso/cache/*
+  # `rm ~/.aws/sso/cache/*` errored under zsh NOMATCH when the cache was already
+  # empty. Remove the dir instead - `aws sso login` recreates it.
+  rm -rf ~/.aws/sso/cache
 }
 
 login-ecr() {
-  aws ecr get-login-password --region eu-west-1 --profile developer-tools | \
-  docker login --username AWS --password-stdin 271518727158.dkr.ecr.eu-west-1.amazonaws.com
-  echo "ECR login successful."
+  # pipefail so an expired-token failure in `get-login-password` fails the pipe
+  # instead of reporting a false success.
+  setopt local_options pipefail
+  if aws ecr get-login-password --region eu-west-1 --profile developer-tools | \
+     docker login --username AWS --password-stdin 271518727158.dkr.ecr.eu-west-1.amazonaws.com; then
+    echo "ECR login successful."
+  else
+    echo "ECR login FAILED." >&2
+    return 1
+  fi
 }
 
 login:all() {
-  echo "Logging into developer-tools in the background..."
-  login developer-tools &
-  echo "Logging into development in the background..."
-  login development &
-  wait
-  echo "All logins completed."
+  # All SEON profiles share one SSO start URL, so a single login authorizes the
+  # shared token cache for every profile. The old parallel `login x & login y &`
+  # raced on ~/.aws/sso/cache and opened two competing browser device flows.
+  echo "Logging into SSO (authorizes all SEON profiles)..."
+  login development
+  echo "SSO login complete."
 }
 
 # Lazy-load NVM on first Node-related command instead of during shell startup.
@@ -56,12 +66,18 @@ load-nvm() {
   nvm use default --silent >/dev/null 2>&1 || true
 }
 
-nvm() { load-nvm && nvm "$@"; }
-node() { load-nvm && command node "$@"; }
-npm() { load-nvm && command npm "$@"; }
-npx() { load-nvm && command npx "$@"; }
-pnpm() { load-nvm && command pnpm "$@"; }
-corepack() { load-nvm && command corepack "$@"; }
+# On machines without nvm, load-nvm returns non-zero. Run it, then fall through
+# to whatever binary is on PATH instead of turning these into silent no-ops.
+# (load-nvm unsets these wrappers on first success, so this cost is paid once.)
+nvm() {
+  if load-nvm; then nvm "$@"
+  else print -u2 "nvm: not installed ($NVM_DIR/nvm.sh missing)"; return 127; fi
+}
+node() { load-nvm; command node "$@"; }
+npm() { load-nvm; command npm "$@"; }
+npx() { load-nvm; command npx "$@"; }
+pnpm() { load-nvm; command pnpm "$@"; }
+corepack() { load-nvm; command corepack "$@"; }
 
 # Auto-switch node version when cd'ing into a directory with .nvmrc.
 # Walks up the tree first so we only pay the load-nvm cost when actually needed.
@@ -160,21 +176,17 @@ zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:
 # Colorize completion lists matching 'ls'
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 
-# Source syntax highlighting and autosuggestions
-if [ -f "/opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
-  source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-elif [ -f "/usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
-  source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-fi
-
+# Source autosuggestions (syntax-highlighting is sourced LAST, at end of file).
 if [ -f "/opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
   source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 elif [ -f "/usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]; then
   source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 fi
 
-# Configure zsh-autosuggestions style (muted/greyish text)
-export ZSH_AUTO_SUGGEST_HIGHLIGHT_STYLE="fg=8"
+# Configure zsh-autosuggestions style (muted/greyish text).
+# NB: the plugin var is ZSH_AUTOSUGGEST_* (one word); the old ZSH_AUTO_SUGGEST_*
+# name was silently ignored. A plain var is enough - no export needed.
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=8"
 
 # Bindings for zsh-autosuggestions
 bindkey '^f' forward-word          # Ctrl+F to accept one word of suggestion
@@ -207,8 +219,23 @@ bindkey "\e[13;2u" insert-newline
 # GitHub Packages auth - pull from gh CLI so no token is hardcoded in dotfiles.
 # On work machine, ~/.zshrc.local overrides this with a PAT if needed.
 # Requires: gh auth refresh -h github.com -s read:packages
-export GITHUB_TOKEN=$(gh auth token 2>/dev/null)
+# Only export when we actually got a token: an empty GITHUB_TOKEN is worse than
+# unset (npm/yarn send an empty bearer -> 401 instead of falling back to anon).
+if command -v gh >/dev/null 2>&1; then
+  __gh_token=$(gh auth token 2>/dev/null)
+  [ -n "$__gh_token" ] && export GITHUB_TOKEN="$__gh_token"
+  unset __gh_token
+fi
 
 # Machine-local overrides: tokens, work env vars, machine-specific paths.
 # This file is NOT tracked by git - create it on each machine separately.
 [ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
+
+# zsh-syntax-highlighting MUST be sourced last, after every ZLE widget is
+# defined (autosuggestions, smart-tab, insert-newline, async-git-prompt), or
+# those widgets aren't wrapped and highlighting desyncs.
+if [ -f "/opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
+  source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+elif [ -f "/usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
+  source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+fi

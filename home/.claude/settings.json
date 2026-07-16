@@ -19,5 +19,6 @@
     "command": "bash ~/.claude/statusline-command.sh"
   },
   "effortLevel": "xhigh",
-  "theme": "dark-ansi"
+  "theme": "dark-ansi",
+  "model": "opus[1m]"
 }
