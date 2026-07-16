@@ -37,6 +37,15 @@ login-ecr() {
   echo "ECR login successful."
 }
 
+login:all() {
+  echo "Logging into developer-tools in the background..."
+  login developer-tools &
+  echo "Logging into development in the background..."
+  login development &
+  wait
+  echo "All logins completed."
+}
+
 # Lazy-load NVM on first Node-related command instead of during shell startup.
 load-nvm() {
   local nvm_sh="$NVM_DIR/nvm.sh"
@@ -54,7 +63,35 @@ npx() { load-nvm && command npx "$@"; }
 pnpm() { load-nvm && command pnpm "$@"; }
 corepack() { load-nvm && command corepack "$@"; }
 
-# Brew path set up early in the file
+# Auto-switch node version when cd'ing into a directory with .nvmrc.
+# Walks up the tree first so we only pay the load-nvm cost when actually needed.
+autoload -U add-zsh-hook
+load-nvmrc() {
+  local dir=$PWD
+  while [[ -n "$dir" && "$dir" != "/" ]]; do
+    [[ -f "$dir/.nvmrc" ]] && break
+    dir="${dir%/*}"
+  done
+  [[ -f "$dir/.nvmrc" ]] || return 0
+  type nvm_find_nvmrc >/dev/null 2>&1 || load-nvm || return 0
+  local nvmrc_path nvmrc_node_version
+  nvmrc_path="$(nvm_find_nvmrc)"
+  if [ -n "$nvmrc_path" ]; then
+    nvmrc_node_version=$(nvm version "$(cat "${nvmrc_path}")")
+    if [ "$nvmrc_node_version" = "N/A" ]; then
+      nvm install
+    elif [ "$nvmrc_node_version" != "$(nvm version)" ]; then
+      nvm use --silent
+    fi
+  elif [ "$(nvm version)" != "$(nvm version default)" ]; then
+    nvm use default --silent
+  fi
+}
+add-zsh-hook chpwd load-nvmrc
+load-nvmrc
+
+# GNU coreutils on macOS (gives 'gls', 'gdate', etc. as their plain names)
+[ -d "/opt/homebrew/opt/coreutils/libexec/gnubin" ] && export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"
 
 # Windsurf
 [ -d "/Applications/Windsurf.app/Contents/Resources/app/bin" ] && export PATH="/Applications/Windsurf.app/Contents/Resources/app/bin:$PATH"
@@ -167,7 +204,11 @@ bindkey "\e[13;2u" insert-newline
 # sourced after other ZLE plugins so its redraw hook composes with them.
 [ -r "$HOME/.config/zsh/async-git-prompt.zsh" ] && source "$HOME/.config/zsh/async-git-prompt.zsh"
 
-# GitHub Packages auth for @seontechnologies private npm registry (npm.pkg.github.com)
-# Sources the gh CLI token so repo .npmrc files reading ${GITHUB_TOKEN} authenticate.
+# GitHub Packages auth - pull from gh CLI so no token is hardcoded in dotfiles.
+# On work machine, ~/.zshrc.local overrides this with a PAT if needed.
 # Requires: gh auth refresh -h github.com -s read:packages
 export GITHUB_TOKEN=$(gh auth token 2>/dev/null)
+
+# Machine-local overrides: tokens, work env vars, machine-specific paths.
+# This file is NOT tracked by git - create it on each machine separately.
+[ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
