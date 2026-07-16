@@ -18,6 +18,24 @@ alias px="pnpm dlx"
 alias n="npm"
 alias nr="npm run"
 alias g="git"
+alias cc="claude --dangerously-skip-permissions"
+
+# AWS SSO helpers (SEON work accounts - harmless no-ops on non-work machines)
+login() {
+  local profile=${1:-development}
+  aws sso login --profile "$profile"
+}
+
+logout() {
+  aws sso logout
+  rm -rf ~/.aws/sso/cache/*
+}
+
+login-ecr() {
+  aws ecr get-login-password --region eu-west-1 --profile developer-tools | \
+  docker login --username AWS --password-stdin 271518727158.dkr.ecr.eu-west-1.amazonaws.com
+  echo "ECR login successful."
+}
 
 # Lazy-load NVM on first Node-related command instead of during shell startup.
 load-nvm() {
