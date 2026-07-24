@@ -24,7 +24,7 @@ __dotfiles_git_prompt_collect() {
   local status_output numstat_output line branch_signature added removed
   local -i files=0 additions=0 deletions=0
 
-  status_output=$(LC_ALL=C GIT_OPTIONAL_LOCKS=0 command git -C "$cwd" status --porcelain=v2 --branch --untracked-files=normal 2>/dev/null) || {
+  status_output=$(LC_ALL=C GIT_OPTIONAL_LOCKS=0 command git -C "$cwd" status --porcelain=v2 --branch --untracked-files=all 2>/dev/null) || {
     print -r -- "$cwd"
     print -r -- "outside"
     print -r -- ""
@@ -58,6 +58,20 @@ __dotfiles_git_prompt_collect() {
       [[ "$added" == <-> ]] && (( additions += added ))
       [[ "$removed" == <-> ]] && (( deletions += removed ))
     done
+
+    # `git diff` only sees tracked files, so a brand-new (untracked) file adds
+    # nothing to the numstat above and its content would vanish from +/- even
+    # though it is real added lines. Count those lines explicitly so the metrics
+    # match what you actually changed. -z keeps paths with spaces/newlines
+    # intact; a single cat|wc pass stays cheap (and is empty-safe: no files ->
+    # 0, no hang). --exclude-standard honors .gitignore, matching the file count.
+    # Run inside "$cwd" so cat resolves the repo-relative paths git prints,
+    # regardless of the worker's own directory. cd failure -> empty -> 0.
+    local -i untracked_added
+    untracked_added=$( cd "$cwd" 2>/dev/null &&
+      command git ls-files -z --others --exclude-standard 2>/dev/null \
+        | xargs -0 cat 2>/dev/null | wc -l )
+    (( additions += untracked_added ))
   fi
 
   print -r -- "$cwd"
@@ -106,9 +120,8 @@ __dotfiles_git_prompt_ready() {
 
   if [[ "$state" == "repo" && "$files" == <-> && "$files" -gt 0 ]]; then
     export STARSHIP_ASYNC_GIT_FILES="$files"
-    # Only surface +/- when non-zero. Untracked files count toward $files but
-    # never appear in `git diff`, so without this an untracked-only tree shows
-    # a misleading "+0 -0".
+    # Only surface each of +/- when non-zero, so an addition-only or
+    # deletion-only change doesn't render a noisy "+0" or "-0" alongside it.
     if [[ "$additions" == <-> && "$additions" -gt 0 ]]; then
       export STARSHIP_ASYNC_GIT_ADDITIONS="$additions"
     else
