@@ -19,6 +19,9 @@ alias n="npm"
 alias nr="npm run"
 alias g="git"
 alias cc="claude --dangerously-skip-permissions"
+alias ca="cursor-agent"
+alias co="codex"
+alias ag="agy --dangerously-skip-permissions"
 
 # AWS SSO helpers (SEON work accounts - harmless no-ops on non-work machines)
 login() {

@@ -14,11 +14,12 @@
       "mcp__claude_ai_Google_Drive__*"
     ]
   },
+  "model": "opus[1m]",
   "statusLine": {
     "type": "command",
     "command": "bash ~/.claude/statusline-command.sh"
   },
   "effortLevel": "xhigh",
-  "theme": "dark-ansi",
-  "model": "opus[1m]"
+  "skipDangerousModePermissionPrompt": true,
+  "theme": "dark-ansi"
 }

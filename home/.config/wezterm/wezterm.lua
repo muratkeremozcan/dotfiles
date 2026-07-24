@@ -25,7 +25,20 @@ config.colors = {
 -- Keep track of closed tabs and panes to allow reopening them
 local closed_entities = {}
 
+-- Note: WezTerm copies to the primary selection on mouse-select by default;
+-- there is no `copy_on_select` config field (setting it makes WezTerm reject
+-- the whole config). CMD+c below copies to the clipboard explicitly.
 config.keys = {
+  {
+    key = 'c',
+    mods = 'CMD',
+    action = wezterm.action.CopyTo 'ClipboardAndPrimarySelection',
+  },
+  {
+    key = 'v',
+    mods = 'CMD',
+    action = wezterm.action.PasteFrom 'Clipboard',
+  },
   {
     key = 'd',
     mods = 'CMD',

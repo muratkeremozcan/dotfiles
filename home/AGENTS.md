@@ -1,6 +1,9 @@
 # global agent instructions
 
-- Never use the em dash "—". Use plain dash "-" instead
+- Never use a dash (em dash "—" or spaced hyphen " - ") as a clause connector. Use a period, colon, or semicolon instead. Hyphens inside real compound words (long-term, well-tuned) are fine.
+- Avoid the "not X, but Y" contrastive sentence pattern. It reads as AI-generated.
+- Cut filler words and hedging. Say the thing directly.
+- Do not end messages with generic engagement bait like "what do you think?" or "happy to hop on a call, 20 minutes." End on the actual point or ask.
 - When writing commit messages, NEVER auto-add your agent name as co-author
 - Never manually modify CHANGELOG.md files or any files that are marked as auto-generated
 - When making technical decisions, do not give much weight to development cost.
