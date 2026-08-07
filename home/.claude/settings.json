@@ -14,7 +14,7 @@
       "mcp__claude_ai_Google_Drive__*"
     ]
   },
-  "model": "sonnet",
+  "model": "claude-sonnet-4-6",
   "statusLine": {
     "type": "command",
     "command": "bash ~/.claude/statusline-command.sh"

@@ -42,4 +42,15 @@ else
   echo "    No Brewfile found, skipping bundle install"
 fi
 
+echo "==> Step 6: Symlink the personal-agent skill for Claude and Codex"
+# Relative targets so the links resolve under either machine's $HOME.
+if [ -d "$HOME/personal-agent" ]; then
+  for skills_dir in "$HOME/.claude/skills" "$HOME/.codex/skills"; do
+    mkdir -p "$skills_dir"
+    ln -sfn ../../personal-agent "$skills_dir/personal-agent"
+  done
+else
+  echo "    ~/personal-agent not present, skipping skill symlinks"
+fi
+
 echo "==> Done bootstrapping dev environment!"
