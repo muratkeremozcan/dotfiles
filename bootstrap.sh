@@ -42,7 +42,12 @@ else
   echo "    No Brewfile found, skipping bundle install"
 fi
 
-echo "==> Step 6: Symlink the personal-agent skill for Claude and Codex"
+echo "==> Step 6: Symlink Claude Code configuration"
+mkdir -p ~/.claude
+ln -sfn "$DIR/home/AGENTS.md" ~/.claude/CLAUDE.md
+ln -sfn "$DIR/home/.claude/settings.json" ~/.claude/settings.json
+
+echo "==> Step 7: Symlink the personal-agent skill for Claude and Codex"
 # Relative targets so the links resolve under either machine's $HOME.
 if [ -d "$HOME/personal-agent" ]; then
   for skills_dir in "$HOME/.claude/skills" "$HOME/.codex/skills"; do
