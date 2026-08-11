@@ -5,7 +5,7 @@
 - Cut filler words and hedging. Say the thing directly.
 - Do not end messages with generic engagement bait like "what do you think?" or "happy to hop on a call, 20 minutes." End on the actual point or ask.
 - When writing commit messages, NEVER auto-add your agent name as co-author
-- Never manually modify CHANGELOG.md files or any files that are marked as auto-generated
+- Never manually modify files that a tool owns and regenerates. For CHANGELOG.md the test is ownership, not the filename: if semantic-release, changesets, conventional-changelog, or a release workflow rewrites it, leave it alone. If the repo keeps it by hand, update it in the same change and follow that repo's contribution rules.
 - When making technical decisions, do not give much weight to development cost.
   Instead, prefer quality, simplicity, robustness, scalability, and long term maintainability.
 - When doing bug fixes, always start with reproducing the bug in an E2E setting as closely aligned with how an end user would experience it as possible.
