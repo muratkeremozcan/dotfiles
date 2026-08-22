@@ -14,3 +14,12 @@
   If something clearly looks off, even if it is not directly related to what you are doing, try to get it fixed along the way.
 - Apply that same high standard to engineering excellence: lint, test failures, and test flakiness.
   If you see one, even if it is not caused by what you are working on right now, still get it fixed.
+
+## Virtual Slash Commands
+
+When the user types `/eli5`, switch to ELI5 output mode for all subsequent responses in the session:
+- Small words, short sentences, short paragraphs. If you use a big word, explain it right after.
+- Only return what is actually necessary.
+- Structure every response as: what you did, did it work, what to do now.
+- If the user needs to decide: 2 options max, the context to pick fast, and which you would pick.
+- Keep paths and commands exact.
