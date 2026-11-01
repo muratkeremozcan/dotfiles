@@ -13,27 +13,73 @@
       "mcp__claude_ai_Google_Calendar__*",
       "mcp__claude_ai_Google_Drive__*",
       "SendMessage",
-      "ListAgents"
+      "ListAgents",
+      "WebFetch",
+      "WebSearch",
+      "mcp__atlassian__*",
+      "mcp__backstage__*",
+      "mcp__coda__*",
+      "mcp__context7__*",
+      "mcp__figma__*",
+      "mcp__github__*",
+      "mcp__granola__*",
+      "mcp__icepanel__*",
+      "mcp__jira__*",
+      "mcp__k6__*",
+      "mcp__memory__*",
+      "mcp__openapi-idv__*",
+      "mcp__playwright__*",
+      "mcp__playwright-test__*",
+      "mcp__savvy-progress__*",
+      "mcp__slack__*",
+      "mcp__smartbear__*",
+      "mcp__testmo__*",
+      "mcp__workflowy__*",
+      "mcp__claude_ai_Claude_Docs__*",
+      "mcp__claude_ai_Superhuman_Docs__*",
+      "mcp__claude_ai_Zoom_for_Claude__*",
+      "mcp__claude_ai_claude_security__*",
+      "mcp__claude_ai_Google_Docs__*",
+      "mcp__claude_ai_Google_Sheets__*",
+      "mcp__claude_ai_Google_Slides__*",
+      "Artifact",
+      "EnterWorktree",
+      "ExitPlanMode",
+      "Monitor",
+      "NotebookEdit",
+      "PowerShell",
+      "ShareOnboardingGuide",
+      "Skill",
+      "Workflow"
     ],
-    "defaultMode": "bypassPermissions"
+    "defaultMode": "auto"
   },
-  "model": "sonnet",
+  "model": "opus",
   "statusLine": {
     "type": "command",
     "command": "bash ~/.claude/statusline-command.sh"
   },
   "enabledPlugins": {
-    "caveman@caveman": true
+    "savvy-progress@claude-kit": true
   },
   "extraKnownMarketplaces": {
-    "caveman": {
+    "claude-kit": {
       "source": {
         "source": "github",
-        "repo": "JuliusBrussee/caveman"
+        "repo": "JohnnyVizz/claude-kit"
       }
     }
   },
+  "outputStyle": "Concise",
   "effortLevel": "xhigh",
+  "modelSettings": {
+    "claude-sonnet-5-5": {
+      "effortLevel": "high"
+    },
+    "claude-opus-5-5": {
+      "effortLevel": "high"
+    }
+  },
   "askUserQuestionTimeout": "10m",
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark-ansi",

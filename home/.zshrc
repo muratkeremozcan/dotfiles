@@ -18,9 +18,10 @@ alias px="pnpm dlx"
 alias n="npm"
 alias nr="npm run"
 alias g="git"
+alias cr="coderabbit review --deep --agent"
 alias cc="claude --dangerously-skip-permissions"
-alias ca="cursor-agent"
-alias co="codex"
+alias ca="cursor-agent --yolo --approve-mcps"
+alias co="codex --dangerously-bypass-approvals-and-sandbox"
 alias ag="agy --dangerously-skip-permissions"
 
 # AWS SSO helpers (SEON work accounts - harmless no-ops on non-work machines)
@@ -141,6 +142,14 @@ fi
 
 # Added by Antigravity CLI installer
 [ -d "$HOME/.local/bin" ] && export PATH="$HOME/.local/bin:$PATH"
+
+# Local Obsidian REST API token. The ignored plugin data file remains the source
+# of truth, so the secret never enters dotfiles or shell history.
+work_obsidian_api_config="$HOME/personal-agent/vault/.obsidian/plugins/obsidian-local-rest-api/data.json"
+if [[ -r "$work_obsidian_api_config" ]]; then
+  export OBSIDIAN_API_KEY="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["apiKey"])' "$work_obsidian_api_config" 2>/dev/null)"
+fi
+unset work_obsidian_api_config
 
 # Cursor app CLI. Keep this after ~/.local/bin so it wins over agent shims named cursor.
 [ -d "/Applications/Cursor.app/Contents/Resources/app/bin" ] && export PATH="/Applications/Cursor.app/Contents/Resources/app/bin:$PATH"

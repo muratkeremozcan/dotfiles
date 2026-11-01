@@ -45,7 +45,12 @@ fi
 echo "==> Step 6: Symlink Claude Code configuration"
 mkdir -p ~/.claude
 ln -sfn "$DIR/home/AGENTS.md" ~/.claude/CLAUDE.md
-ln -sfn "$DIR/home/.claude/settings.json" ~/.claude/settings.json
+# A regular file here is a machine-private settings file. Leave it alone.
+if [ -e ~/.claude/settings.json ] && [ ! -L ~/.claude/settings.json ]; then
+  echo "    ~/.claude/settings.json is a private regular file, not relinking"
+else
+  ln -sfn "$DIR/home/.claude/settings.json" ~/.claude/settings.json
+fi
 
 echo "==> Step 7: Symlink the personal-agent skill for Claude and Codex"
 # Relative targets so the links resolve under either machine's $HOME.
