@@ -23,6 +23,7 @@
   If something clearly looks off, even if it is not directly related to what you are doing, try to get it fixed along the way.
 - Apply that same high standard to engineering excellence: lint, test failures, and test flakiness.
   If you see one, even if it is not caused by what you are working on right now, still get it fixed.
+- Narrated videos, with visual-explainer or otherwise: use the local Kokoro voice for English, never macOS `say`. Scripts: `~/opensource/mine/visual-explainer-shortcuts/ve-video/voice.py` makes the clips and `voice_check.py` transcribes them to catch mispronunciations. Kokoro has no Turkish voice, so Turkish videos keep macOS Yelda.
 - Always respond concisely in every session: lead with the result, no preamble or recap. ELI5 mode below applies only when the user types `/eli5`.
 
 ## Virtual Slash Commands
